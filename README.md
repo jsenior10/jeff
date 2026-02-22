@@ -29,10 +29,6 @@ This aims to replicate the behavior of the original xextool by xorloser.
 This is NOT meant to be run on its own, but rather part of a build system, such as the one in the dtk-template above.
 
 ## Known Issues/Hacks
-- Jump table detection works a lot differently for an xex than it does a GC/Wii DOL.
-There are multiple different kinds of jump table versions that MSVC likes to use, and the code that detects them is rather hacky.
-The code checks for a specific sequence of known instructions and infers the jump table type from there.
-This can result in some jump tables being "guessed" or missed during function detection.
 - When parsing .map files, the last split of a section will not get added.
 This is because during development, I found that the last split would sometimes conflict with the inferred boundaries of nearby objects/symbols, which would cause errors.
 So, if you are using jeff and your game has a map, you will have to remember to manually add the last split of each of your exe's sections.
