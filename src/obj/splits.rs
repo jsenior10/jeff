@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// Marks a split point within a section.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct ObjSplit {
     pub unit: String,
     pub end: u32,
@@ -106,10 +106,27 @@ impl ObjSplits {
             .map_err(|_| anyhow!("Multiple splits for unit {}", unit))
     }
 
-    pub fn push(&mut self, address: u32, split: ObjSplit) {
+    /// Get the ObjSplit provided by unit with the specified rename,
+    /// if it exists
+    pub fn for_unit_rename(
+        &mut self,
+        unit: &str,
+        rename: Option<&str>,
+    ) -> Result<Option<(u32, &mut ObjSplit)>> {
+        self.splits
+            .iter_mut()
+            .flat_map(|(addr, v)| v.iter_mut().map(move |u| (*addr, u)))
+            .filter(|(_, split)| split.unit == unit && split.rename.as_deref() == rename)
+            .at_most_one()
+            .map_err(|_| anyhow!("Multiple splits for unit {} with rename {:?}", unit, rename))
+    }
+
+    /// Add the split, returning a mutable reference to it within the vector
+    pub fn push(&mut self, address: u32, split: ObjSplit) -> &mut ObjSplit {
         let out = self.splits.entry(address).or_default();
         out.push(split);
         out.sort_by_key(|s| s.end);
+        out.last_mut().unwrap()
     }
 
     pub fn remove(&mut self, address: u32) -> Option<Vec<ObjSplit>> { self.splits.remove(&address) }
